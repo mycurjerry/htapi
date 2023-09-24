@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set ("PRC");
 header ('Content-Type: text/html; charset=utf-8');
 ini_set("display_errors", "stderr");error_reporting(E_ALL);
 $month = date('m',time());
