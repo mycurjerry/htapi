@@ -1,53 +1,53 @@
 <?php
-// 验证服务器URL有效性
-$token = '2uiapi';
-$signature = $_GET['signature'];
-$timestamp = $_GET['timestamp'];
-$nonce = $_GET['nonce'];
-$echoStr = $_GET['echostr'];
+function stripAnchorTags($string) {
+    // 使用正则表达式匹配并替换<a>标签
+    $pattern = '/<a\b[^>]*>(.*?)<\/a>/i';
+    $replacement = '$1';
+    $result = preg_replace($pattern, $replacement, $string);
 
-$tokenArray = array($token, $timestamp, $nonce);
-sort($tokenArray, SORT_STRING);
-$sortedString = implode($tokenArray);
-$sha1String = sha1($sortedString);
-
-if ($sha1String == $signature) {
-    // 验证成功，返回echostr给微信服务器
-    echo $echoStr;
-} else {
-    // 验证失败
-    echo '验证失败';
+    // 返回处理后的结果
+    return $result;
 }
 
-// 处理用户消息
+// 验证微信服务器的有效性
+$token = "2uiapi"; // 替换成您在微信公众号后台设置的Token
+$signature = $_GET["signature"];
+$timestamp = $_GET["timestamp"];
+$nonce = $_GET["nonce"];
+$echostr = $_GET["echostr"];
+
+$tokenList = [$token, $timestamp, $nonce];
+sort($tokenList);
+$signatureCheck = sha1(implode($tokenList));
+$aaa=stripAnchorTags(file_get_contents("http://home.2ui.top/htapi/index.php"));
+
+
+if ($signatureCheck == $signature) {
+    echo $echostr;
+    exit;
+}
+
+// 处理消息
 $postData = file_get_contents("php://input");
-if (!empty($postData)) {
-    $xmlData = simplexml_load_string($postData);
-    $fromUser = $xmlData->FromUserName;
-    $toUser = $xmlData->ToUserName;
-    $msgType = $xmlData->MsgType;
-    $content = trim($xmlData->Content);
+$xml = simplexml_load_string($postData, 'SimpleXMLElement', LIBXML_NOCDATA);
 
-    if ($msgType === 'text') {
-        if ($content === '查询') {
-            // 用户发送了"查询"，回复"好的"
-            $replyText = '好的';
-        } else {
-            // 用户输入错误，回复"输入错误"
-            $replyText = '输入错误';
-        }
+$fromUserName = $xml->FromUserName;
+$toUserName = $xml->ToUserName;
+$msgType = $xml->MsgType;
 
-        // 构造回复消息
-        $responseXml = "<xml>
-            <ToUserName><![CDATA[$fromUser]]></ToUserName>
-            <FromUserName><![CDATA[$toUser]]></FromUserName>
-            <CreateTime>" . time() . "</CreateTime>
-            <MsgType><![CDATA[text]]></MsgType>
-            <Content><![CDATA[$replyText]]></Content>
-        </xml>";
-
-        // 输出回复消息
-        echo $responseXml;
-    }
+if ($msgType == "text") {
+    $content = "历史上的今天发生了很多事：\n".$aaa; // 回复消息内容
+} else {
+    $content = "暂时不支持此消息类型的处理";
 }
-?>
+
+// 构建回复消息
+$responseXml = "<xml>
+    <ToUserName><![CDATA[$fromUserName]]></ToUserName>
+    <FromUserName><![CDATA[$toUserName]]></FromUserName>
+    <CreateTime>" . time() . "</CreateTime>
+    <MsgType><![CDATA[text]]></MsgType>
+    <Content><![CDATA[$content]]></Content>
+</xml>";
+
+echo $responseXml;
