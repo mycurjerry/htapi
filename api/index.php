@@ -26,8 +26,7 @@ foreach ($data[$month.$day] as $index => $item) {
     $year = $item['year'];
     $title = $item['title'];
 
-    echo "序号: " . ($index + 1) . "<br>";
-    echo "....年份: " . $year . '-'.$month.'-'.$day. "<br>";
-    echo "....事件: " . $title . "<br>";
+    echo "序号:" . ($index + 1) ."\n";
+    echo "年份:" . $year . '-'.$month.'-'.$day ."\n";
+    echo "事件:" . $title ."\n";
 }
-
